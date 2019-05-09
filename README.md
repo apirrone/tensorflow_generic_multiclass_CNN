@@ -8,15 +8,16 @@ Inspired by https://github.com/ardiya/siamesenetwork-tensorflow
 
 Assumes the layout of your data is as the following :
 
-|
-|_<root_data_directory>
-	|_<class1>
-	|  | <image1>
-	|  | <image2>
-	|  | ...
-	[
-	|_<class2>
-	|  | <image1>
-	|  | <image2>
-	|  | ...
-	...
+```
+root_data_directory
+└───class_1_directory
+│   │   image1
+│   │   image2
+│   │	...
+└───class_1_directory
+│   │   image1
+│   │   image2
+│   │	...
+|   ...
+```
+
