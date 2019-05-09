@@ -17,10 +17,11 @@ data_path = "path_to_your_data"
 train_proportion = 0.8
 classes = ["class1", "class2", "class3"] # any number of classes
 model = tiny_model
+gray_scale = True
 
 if __name__ == "__main__":
         
-        dataset = Dataset(data_path, image_size, train_proportion, classes)        
+        dataset = Dataset(data_path, image_size, train_proportion, classes, gray_scale)        
         nbBatchsInEpoch = dataset.buildBatches(batch_size)
 
         placeholder_shape = [None] + list(dataset.imShape)

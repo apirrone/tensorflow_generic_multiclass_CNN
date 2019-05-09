@@ -35,15 +35,7 @@ class Dataset():
                 labels = []
 
                 for entry in self.batches[self.currentBatch]:
-                        im = cv2.imread(entry["image"])
-                        im = cv2.resize(im, (self.image_size[1], self.image_size[0]))
-                        im = cv2.normalize(im, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
-                        
-                        tmpIm = np.ndarray(shape=(self.image_size[1], self.image_size[0], 3))
-                        tmpIm = np.reshape(im, (im.shape[0], im.shape[1], 3))
-                        
-                        images.append(tmpIm)
-                        
+                        images.append(entry["image"])
                         labelVector = self.getLabelVector(self.labels_map[entry["label"]])
                         labels.append(labelVector)
 
@@ -112,30 +104,41 @@ class Dataset():
 
                 for key, value in self.pathsByLabel.items():
                         for i in range(0, len(value)):
-                                if i < self.train_proportion*len(value): # TRAINING
-                                        self.trainingSet.append({"image" : value[i], "label" : key})
-                                else:                                    # VALIDATION
-                                        imagePath = value[i]
+                                imagePath = value[i]
+                                
+                                
+                                if self.gray_scale:
+                                        im = cv2.imread(imagePath, cv2.IMREAD_GRAYSCALE)
+                                        nbChannels = 1
+                                else:
                                         im = cv2.imread(imagePath)
-                                        im = cv2.resize(im, (self.image_size[1], self.image_size[0]))
-                                        im = cv2.normalize(im, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+                                        nbChannels = 3
+                                
+                                im = cv2.resize(im, (self.image_size[1], self.image_size[0]))
+                                im = cv2.normalize(im, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)        
+                                
+                                tmpIm = np.ndarray(shape=(self.image_size[1], self.image_size[0], nbChannels))
+                                tmpIm = np.reshape(im, (self.image_size[1], self.image_size[0], nbChannels))
+                                
+                                if not self.imShape:
+                                        self.imShape = tmpIm.shape
                                         
-                                        tmpIm = np.ndarray(shape=(self.image_size[1], self.image_size[0], 3))
-                                        tmpIm = np.reshape(im, (im.shape[0], im.shape[1], 3))
-                                        if not self.imShape:
-                                                self.imShape = tmpIm.shape
+                                if i < self.train_proportion*len(value): # TRAINING
+                                        self.trainingSet.append({"image" : tmpIm, "label" : key})
+                                else:                                    # VALIDATION
                                         self.validationSet.append({"image" : tmpIm, "label" : key})
 
                 random.shuffle(self.validationSet)
                 random.shuffle(self.trainingSet)
         
                                         
-        def __init__(self, dataPath, imSize, trainProportion, classes):
+        def __init__(self, dataPath, imSize, trainProportion, classes, gray_scale):
                 self.image_size = imSize
                 self.dataPath = dataPath
                 self.train_proportion = trainProportion
                 self.currentBatch = 0
                 self.imShape = ()
+                self.gray_scale = gray_scale
                 
                 self.trainingSet = [] # [{image, label}]
                 self.validationSet = [] # [{image, label}]
@@ -154,8 +157,9 @@ if __name__ == "__main__":
         dataPath = "path_to_your_data/"
         train_proportion = 0.8
         batch_size = 64
+        gray_scale = False
         
-        dataset = Dataset(dataPath, [height, width], train_proportion, classes)        
+        dataset = Dataset(dataPath, [height, width], train_proportion, classes, gray_scale)        
 
         nbBatches = dataset.buildBatches(batch_size)
 
