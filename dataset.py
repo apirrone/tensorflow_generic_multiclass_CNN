@@ -150,13 +150,14 @@ class Dataset():
                 
 if __name__ == "__main__":
 
-        classes = ["demotic", "greek"]#, "coptic"]
-        dataPath = "data/testDemoticGreek/"
-        dataset = Dataset(dataPath, [256, 256], 0.8, classes)        
+        classes = ["class1", "class2", "class3"] # any number of classes
+        dataPath = "path_to_your_data/"
+        train_proportion = 0.8
+        batch_size = 64
+        
+        dataset = Dataset(dataPath, [height, width], train_proportion, classes)        
 
-        nbBatches = dataset.buildBatches(64)
-        for b in dataset.batches:
-                print(len(b))
+        nbBatches = dataset.buildBatches(batch_size)
 
         currentBatch, images, labels = dataset.getBatch()
         print(len(images))

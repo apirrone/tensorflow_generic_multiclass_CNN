@@ -13,9 +13,9 @@ nb_epochs = 100
 image_size = [256, 256]
 model_folder = "model/"
 learning_rate = 0.01
-data_path = "data/testDemoticGreek/"
+data_path = "path_to_your_data"
 train_proportion = 0.8
-classes = ["demotic", "greek"]#, "coptic"]
+classes = ["class1", "class2", "class3"] # any number of classes
 model = tiny_model
 
 if __name__ == "__main__":
@@ -54,7 +54,6 @@ if __name__ == "__main__":
                 
                 batch_test_images, batch_test_labels = dataset.getValidationSet()
                 
-                #train iter
                 i = 0
                 while(currentEpoch < nb_epochs):
 
