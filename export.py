@@ -4,17 +4,6 @@ import os
 import cv2
 from tensorflow.python.framework import graph_util
 import argparse
-import backtrace
-
-backtrace.hook(
-    reverse=False,
-    align=True,
-    strip_path=True,
-    enable_on_envvar_only=False,
-    on_tty=False,
-    conservative=False,
-    styles={})
-
 
 def typeDir(str):
     if(not os.path.isdir(str)):

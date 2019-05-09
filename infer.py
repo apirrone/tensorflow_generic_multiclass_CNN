@@ -4,17 +4,6 @@ import os
 import cv2
 import argparse
 
-import backtrace
-
-backtrace.hook(
-    reverse=False,
-    align=True,
-    strip_path=True,
-    enable_on_envvar_only=False,
-    on_tty=False,
-    conservative=False,
-    styles={})
-
 def typeDir(str):
     if(not os.path.isdir(str)):
         raise argparse.ArgumentTypeError("{0} is not a directory.".format(str))

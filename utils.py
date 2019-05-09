@@ -1,12 +1,7 @@
 import sys
 import random
-def getJson(file):
-        return file[:-len('.png')]+'.json'
 
-def getImg(file):
-        return file[:-len('.json')]+'.png'
-
-# Taken from https://stackoverflow.com/questions/3041986/apt-command-line-interface-like-yes-no-input
+# Shamelessly taken from https://stackoverflow.com/questions/3041986/apt-command-line-interface-like-yes-no-input
 def query_yes_no(question, default="yes"):
     """Ask a yes/no question via raw_input() and return their answer.
     

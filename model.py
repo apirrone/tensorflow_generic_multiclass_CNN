@@ -14,6 +14,7 @@ def tiny_model(input, nbClasses):
         # Input sizes (to be extracted automatically)
         input_size = 32
         input_channels = 3
+        
         # NN structure parameters
         kernels = [7,3]
         poolings = [4,4]
@@ -27,7 +28,6 @@ def tiny_model(input, nbClasses):
                                                        activation_fn=tf.nn.relu, padding='SAME',
                                                        weights_initializer=tf.contrib.layers.xavier_initializer_conv2d(),
                                                        scope=scope)
-                        # net = tf.contrib.layers.batch_norm(net, is_training=is_training, scope=scope)
                         net = tf.contrib.layers.max_pool2d(net, [poolings[0], poolings[0]], padding='VALID')
                         manual_nb_neurons["conv1"] = input_channels * conv_features[0] * kernels[0] ** 2
                         
@@ -36,7 +36,6 @@ def tiny_model(input, nbClasses):
                                                        activation_fn=tf.nn.relu, padding='SAME',
                                                        weights_initializer=tf.contrib.layers.xavier_initializer_conv2d(),
                                                        scope=scope)
-                        # net = tf.contrib.layers.batch_norm(net, is_training=is_training, scope=scope)
                         net = tf.contrib.layers.max_pool2d(net, [poolings[1], poolings[1]], padding='VALID')
                         manual_nb_neurons["conv2"] = conv_features[0] * conv_features[1] * kernels[1] ** 2
                         

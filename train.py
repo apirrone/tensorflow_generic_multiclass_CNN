@@ -6,18 +6,6 @@ from dataset import *
 from model import *
 import cv2
 
-import backtrace
-
-backtrace.hook(
-    reverse=False,
-    align=True,
-    strip_path=True,
-    enable_on_envvar_only=False,
-    on_tty=False,
-    conservative=False,
-    styles={})
-
-
 os.environ["CUDA_VISIBLE_DEVICES"]='1'
 
 batch_size = 32

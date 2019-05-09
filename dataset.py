@@ -1,21 +1,8 @@
-from __future__ import generators, division, absolute_import, with_statement, print_function, unicode_literals
-
 import numpy as np
 import cv2
 import os
 import random
 import utils
-
-import backtrace
-
-backtrace.hook(
-    reverse=False,
-    align=True,
-    strip_path=True,
-    enable_on_envvar_only=False,
-    on_tty=False,
-    conservative=False,
-    styles={})
 
 class Dataset():
 
