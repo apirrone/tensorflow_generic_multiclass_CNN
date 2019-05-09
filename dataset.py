@@ -36,10 +36,10 @@ class Dataset():
 
                 for entry in self.batches[self.currentBatch]:
                         im = cv2.imread(entry["image"])
-                        im = cv2.resize(im, (self.image_size, self.image_size))
+                        im = cv2.resize(im, (self.image_size[1], self.image_size[0]))
                         im = cv2.normalize(im, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
                         
-                        tmpIm = np.ndarray(shape=(self.image_size, self.image_size, 3))
+                        tmpIm = np.ndarray(shape=(self.image_size[1], self.image_size[0], 3))
                         tmpIm = np.reshape(im, (im.shape[0], im.shape[1], 3))
                         
                         images.append(tmpIm)
@@ -117,10 +117,10 @@ class Dataset():
                                 else:                                    # VALIDATION
                                         imagePath = value[i]
                                         im = cv2.imread(imagePath)
-                                        im = cv2.resize(im, (self.image_size, self.image_size))
+                                        im = cv2.resize(im, (self.image_size[1], self.image_size[0]))
                                         im = cv2.normalize(im, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
                                         
-                                        tmpIm = np.ndarray(shape=(self.image_size, self.image_size, 3))
+                                        tmpIm = np.ndarray(shape=(self.image_size[1], self.image_size[0], 3))
                                         tmpIm = np.reshape(im, (im.shape[0], im.shape[1], 3))
                                         if not self.imShape:
                                                 self.imShape = tmpIm.shape
@@ -152,7 +152,7 @@ if __name__ == "__main__":
 
         classes = ["demotic", "greek"]#, "coptic"]
         dataPath = "data/testDemoticGreek/"
-        dataset = Dataset(dataPath, 256, 0.8, classes)        
+        dataset = Dataset(dataPath, [256, 256], 0.8, classes)        
 
         nbBatches = dataset.buildBatches(64)
         for b in dataset.batches:

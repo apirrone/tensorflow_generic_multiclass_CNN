@@ -13,7 +13,7 @@ train_iter = 5000
 step = 50
 margin = 0.5
 nb_epochs = 100
-image_size = 256
+image_size = [256, 256]
 model_folder = "model/"
 learning_rate = 0.01
 data_path = "data/testDemoticGreek/"
@@ -107,17 +107,17 @@ if __name__ == "__main__":
                                         true = batch_test_labels[b]
                                         pred = sample[b]
                                         if (np.argmax(true) != np.argmax(pred)):
-                                                blank_image = np.zeros((dataset.image_size*2, dataset.image_size*2, 3))
+                                                blank_image = np.zeros((dataset.image_size[1]*2, dataset.image_size[0]*2, 3))
                                                 blank_image[:, :, 0] = 255
                                                 blank_image[:, :, 1] = 255
                                                 blank_image[:, :, 2] = 255
-                                                blank_image[0:dataset.image_size, 0:dataset.image_size, :] = (tmpIm*255).astype(np.uint8)
+                                                blank_image[0:dataset.image_size[1], 0:dataset.image_size[0], :] = (tmpIm*255).astype(np.uint8)
 
                                                 str_true = "true : "+dataset.inverted_labels_map[np.argmax(true)]
                                                 str_pred = "pred : "+dataset.inverted_labels_map[np.argmax(pred)]
                                         
-                                                cv2.putText(blank_image, str_true, (0, dataset.image_size+30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2, cv2.LINE_AA)
-                                                cv2.putText(blank_image, str_pred, (0, dataset.image_size+50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2, cv2.LINE_AA)
+                                                cv2.putText(blank_image, str_true, (0, dataset.image_size[0]+30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2, cv2.LINE_AA)
+                                                cv2.putText(blank_image, str_pred, (0, dataset.image_size[0]+50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2, cv2.LINE_AA)
                                                 cv2.imwrite("visualization_"+model_folder+"/false_prediction_"+str(imageIndex)+".png", blank_image.astype(np.uint8))
                                                 
                                                 imageIndex +=1
