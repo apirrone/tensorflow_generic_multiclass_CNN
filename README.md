@@ -28,5 +28,6 @@ You can create a `Dataset` object this way :
 	dataset = Dataset(data_path, image_size, train_proportion, classes)
 	
 - `train_proportion` (float between 0 and 1): the proportion of images that will be used for training, the remaining will be used for validation
+- `classes` (list of strings): the names of the classes that will be used (should exactly match the names of the subdirectories of `root_data_directory`
 
 
