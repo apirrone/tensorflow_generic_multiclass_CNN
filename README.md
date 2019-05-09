@@ -21,3 +21,9 @@ root_data_directory
 |   ...
 ```
 
+Classes directories must have distinct names and represent the label of the class.
+
+You can create a `Dataset` object this way : 
+
+	dataset = Dataset(data_path, image_size, train_proportion, classes)
+

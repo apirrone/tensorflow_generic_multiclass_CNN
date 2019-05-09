@@ -16,14 +16,14 @@ nb_epochs = 100
 image_size = 256
 model_folder = "model/"
 learning_rate = 0.01
-dataPath = "data/testDemoticGreek/"
+data_path = "data/testDemoticGreek/"
 train_proportion = 0.8
 
 classes = ["demotic", "greek"]#, "coptic"]
 
 if __name__ == "__main__":
         
-        dataset = Dataset(dataPath, image_size, train_proportion, classes)        
+        dataset = Dataset(data_path, image_size, train_proportion, classes)        
         nbBatchsInEpoch = dataset.buildBatches(batch_size)
         
         model = tiny_model
@@ -159,7 +159,7 @@ if __name__ == "__main__":
                                 aze.write("Image size : "+str(image_size)+"\n")
                                 aze.write("Epoch : "+str(currentEpoch)+"/"+str(nb_epochs)+"\n")
                                 aze.write("Learning rate : "+str(learning_rate)+"\n\n")
-                                aze.write("Data used : "+str(dataPath)+"\n\n")
+                                aze.write("Data used : "+str(data_path)+"\n\n")
                                 
                                 
                                 aze.write(str(len(classes))+" Classes : "+str(classes)+"\n\n")
