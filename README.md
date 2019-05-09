@@ -46,9 +46,34 @@ Then, everytime you need a new batch :
 	
 The current batch is kept track of internally and is also returned so that you can keep track of it. When needed (when starting a new epoch), you can call again `dataset.buildBatches(batch_size)` to generate a new set of batches.
 
+`labels` is a list of floats of the same size as `classes`. Each entry of the list corresponds to the probability of correspondence to the class of its index.
+
 To get the validation set, you can call :
 
 	images, labels = dataset.getValidationSet()
+
+
+### model.py
+
+Contains the descriptions of your models
+
+### train.py
+
+At each epoch, the checkpoints and .pb representations will be saved in `model_folder` along side with an `infos` file containing informations about the last saved training step (accuracy, loss, confusion matrix...). A `visualization_<model_folder>/` directory will also be created. Here, every false classifications on the validation set will be displayed in a convenient way for troubleshooting.
+
+### export.py
+
+Exports the last checkpoint of a model to .pb and .pbtxt files
+
+### infer.py
+
+runs last checkpoint of model on all the files in a choosen directory
+
+
+
+
+
+
 	
 
 	

@@ -9,25 +9,20 @@ import cv2
 os.environ["CUDA_VISIBLE_DEVICES"]='1'
 
 batch_size = 32
-train_iter = 5000
-step = 50
-margin = 0.5
 nb_epochs = 100
 image_size = [256, 256]
 model_folder = "model/"
 learning_rate = 0.01
 data_path = "data/testDemoticGreek/"
 train_proportion = 0.8
-
 classes = ["demotic", "greek"]#, "coptic"]
+model = tiny_model
 
 if __name__ == "__main__":
         
         dataset = Dataset(data_path, image_size, train_proportion, classes)        
         nbBatchsInEpoch = dataset.buildBatches(batch_size)
-        
-        model = tiny_model
-        print(dataset.imShape)
+
         placeholder_shape = [None] + list(dataset.imShape)
         print("placeholder_shape", placeholder_shape)
 
@@ -70,7 +65,8 @@ if __name__ == "__main__":
                         losses.append(l)
 
                         print("Epoch : "+str(currentEpoch)+", i : "+str(i)+", training loss   : "+str(round(l, 4))+", mega smoothed loss : "+str(round(np.mean(losses[-1000:]), 4)))
-                        
+
+                        # End of an epoch
                         if(currentBatch >= nbBatchsInEpoch-1):
                                 nbBatchsInEpoch = dataset.buildBatches(batch_size)
                                 currentEpoch+=1
@@ -192,7 +188,7 @@ if __name__ == "__main__":
                                 output_graph_def = graph_util.convert_variables_to_constants(
                                         sess,
                                         input_graph_def,
-                                        ["tiny_model/output/output/Softmax"])
+                                        ["tiny_model/output/output/Softmax"])  # WARNING change this if you change the model
                                 
                                 with tf.gfile.GFile(str(model_folder)+"/model.pb", "wb") as f:
                                         f.write(output_graph_def.SerializeToString())

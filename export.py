@@ -38,9 +38,9 @@ with tf.Session() as sess:
     input_graph_def = graph.as_graph_def()
 
     output_graph_def = graph_util.convert_variables_to_constants(
-        sess,  # The session is used to retrieve the weights
-        input_graph_def,  # The graph_def is used to retrieve the nodes
-        ["tiny_model/output/output/Softmax"]  # The output node names are used to select the usefull nodes
+        sess,
+        input_graph_def,
+        ["tiny_model/output/output/Softmax"]  # WARNING change this if you change the model
     )
     # Finally we serialize and dump the output graph to the filesystem
     with tf.gfile.GFile(str(args.inputDir)+"/model.pb", "wb") as f:

@@ -1,8 +1,5 @@
-from __future__ import generators, division, absolute_import, with_statement, print_function, unicode_literals
-
 import tensorflow as tf
 import numpy as np
-import sys
 
 # 95% accuracy
 # 16 channels
