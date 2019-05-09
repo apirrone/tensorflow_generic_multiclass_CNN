@@ -18,6 +18,7 @@ class Dataset():
 
                 print(self.labels_map)
                 print(self.inverted_labels_map)
+                print("== DONE ==")
 
         def getLabelVector(self, label):
                 labelVector = []
@@ -86,7 +87,7 @@ class Dataset():
                         
 
         def buildTrainingAndValidationSets(self):
-                
+                totalNumberOfImages = 0
                 self.pathsByLabel = {}
                 for key in self.labels_map.keys():
                         self.pathsByLabel[key] = []
@@ -96,14 +97,24 @@ class Dataset():
                                 if(os.path.isfile(currentDataPath+file)):
                                         if file.endswith('.JPG'):
                                                 self.pathsByLabel[key].append(currentDataPath+file)
+                                                totalNumberOfImages += 1
 
                         random.shuffle(self.pathsByLabel[key])
                                                 
                 for key, value in self.pathsByLabel.items():
                         print("Number of "+key+" : "+str(len(value)))
-
+                        
+                ii = 0
+                print("== Loading Images ...  ==")
                 for key, value in self.pathsByLabel.items():
                         for i in range(0, len(value)):
+                                percentage = int(ii/totalNumberOfImages*100)
+                                if i < totalNumberOfImages-1:
+                                        print("Loaded "+str(percentage)+"% of the images", end="\r")
+                                else:
+                                        print("Loaded 100% of the images")
+                                        print("== DONE ==")
+                                
                                 imagePath = value[i]
                                 
                                 
@@ -127,6 +138,7 @@ class Dataset():
                                         self.trainingSet.append({"image" : tmpIm, "label" : key})
                                 else:                                    # VALIDATION
                                         self.validationSet.append({"image" : tmpIm, "label" : key})
+                                ii+=1
 
                 random.shuffle(self.validationSet)
                 random.shuffle(self.trainingSet)

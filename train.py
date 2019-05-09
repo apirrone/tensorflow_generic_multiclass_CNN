@@ -17,7 +17,7 @@ data_path = "path_to_your_data"
 train_proportion = 0.8
 classes = ["class1", "class2", "class3"] # any number of classes
 model = tiny_model
-gray_scale = True
+gray_scale = False
 
 if __name__ == "__main__":
         
@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
                         losses.append(l)
 
-                        print("Epoch : "+str(currentEpoch)+", i : "+str(i)+", training loss   : "+str(round(l, 4))+", mega smoothed loss : "+str(round(np.mean(losses[-1000:]), 4)))
+                        print("Epoch : "+str(currentEpoch)+", i : "+str(i)+", training loss   : "+str(round(l, 4))+", smoothed loss : "+str(round(np.mean(losses[-1000:]), 4)))
 
                         # End of an epoch
                         if(currentBatch >= nbBatchsInEpoch-1):

@@ -56,7 +56,7 @@ def tiny_model(input, nbClasses):
                                                                 scope=scope)
                         manual_nb_neurons["fc2"] = fc_layer_output * nbClasses
 
-        print(net.name)
-        print(manual_nb_neurons)
+        print("Output node name : "+str(net.name))
+        print("Number of neurons per layer : "+str(manual_nb_neurons))
 
         return net
