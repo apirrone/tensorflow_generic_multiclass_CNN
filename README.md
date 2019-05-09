@@ -31,7 +31,7 @@ You can create a `Dataset` object this way :
 - `image_size` ([int, int]): the size of the images [width, height]
 - `train_proportion` (float between 0 and 1): the proportion of images that will be used for training, the remaining will be used for validation
 - `classes` (list of strings): the names of the classes that will be used (should exactly match the names of the subdirectories of `root_data_directory`
-- `gray_scale` (bool) if you want yo load your images in gray_scale
+- `gray_scale` (bool) if you want yo load your images in gray scale
 
 `classes` will internally be sorted alphabetically, and an integer will be attributed to each class accordingly (cf Dataset.py -> `buildLabelsMapAndInvertedLabelsMap()`)
 
