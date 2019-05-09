@@ -57,7 +57,7 @@ if __name__ == "__main__":
                 trainAcc = []
                 losses = []
                 
-                batch_test_images, batch_test_labels = dataset.getValidation()
+                batch_test_images, batch_test_labels = dataset.getValidationSet()
                 
                 #train iter
                 i = 0

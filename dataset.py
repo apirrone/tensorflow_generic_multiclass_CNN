@@ -51,7 +51,7 @@ class Dataset():
                 return self.currentBatch, images, labels
         
         
-        def getValidation(self):
+        def getValidationSet(self):
 
                 images = []
                 labels = []
