@@ -13,7 +13,7 @@ now = datetime.datetime.now()
 os.environ["CUDA_VISIBLE_DEVICES"]='1'
 
 batch_size = 64
-nb_epochs = 100
+nb_epochs = 40
 image_size = [128, 128]
 learning_rate = 0.001
 train_proportion = 0.8
@@ -23,6 +23,7 @@ gray_scale = False
 
 model_folder = "model_"+now.strftime("%Y-%m-%d_%H:%M")+"/"
 os.system("mkdir "+str(model_folder))
+os.system("unlink lastModel")
 os.system("ln -sf "+str(model_folder)+" lastModel")
 logs_dir = str(model_folder)+"/logs/"
 data_path = "data/"
@@ -33,8 +34,14 @@ if __name__ == "__main__":
         dataset = Dataset(data_path, image_size, train_proportion, classes, gray_scale)        
         nbBatchsInEpoch = dataset.buildBatches(batch_size)
 
-        modelInfos = open(model_folder+"/infos", "a")                                
-        modelInfos.write("Model name : tiny_model_1layer2fc\n")
+        modelInfos = open(model_folder+"/infos", "a")
+
+        print("Write a comment on the current experiment : ")
+        comment = input()
+        
+        modelInfos.write("Comment : "+str(comment)+"\n\n")
+        
+        modelInfos.write("Model name : tiny_model\n")
         modelInfos.write("Batch size : "+str(batch_size)+"\n")
         modelInfos.write("Image size : "+str(image_size)+"\n")
         modelInfos.write("Learning rate : "+str(learning_rate)+"\n\n")
@@ -56,13 +63,20 @@ if __name__ == "__main__":
         # Loss functions
         cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=y_true, logits=y_pred))
         sigmoid_cross_entropy_with_logits = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=y_true, logits=y_pred))
-        
         loss = cross_entropy
+        loss_summary = tf.summary.scalar("loss", loss)
 
-        # Create a summary to monitor cost tensor
-        tf.summary.scalar("loss", loss)
-        # Merge all summaries into a single op
-        merged_summary_op = tf.summary.merge_all()
+        
+        correct_prediction = tf.equal(tf.argmax(y_pred, 1), tf.argmax(y_true, 1))
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        accuracy_summary = tf.summary.scalar("accuracies", accuracy)
+
+        # train_correct_prediction = tf.equal(tf.argmax(y_pred, 1), tf.argmax(y_true, 1))
+        # train_accuracy = tf.reduce_mean(tf.cast(train_correct_prediction, tf.float32))
+        # train_accuracy_summary = tf.summary.scalar("train_accuracy", train_accuracy)
+        
+        # # Merge all summaries into a single op
+        # merged_summary_op = tf.summary.merge_all()
         
         # Optimizers
         # train_step = tf.train.MomentumOptimizer(learningRate, 0.99, use_nesterov=False).minimize(loss)
@@ -77,7 +91,9 @@ if __name__ == "__main__":
                 sess.run(tf.global_variables_initializer())
                 
                 # tensorboard stuff
-                writer = tf.summary.FileWriter(logs_dir, sess.graph)
+                writer = tf.summary.FileWriter(logs_dir+"loss", sess.graph)
+                writer1 = tf.summary.FileWriter(logs_dir+"test_accuracy")
+                writer2 = tf.summary.FileWriter(logs_dir+"train_accuracy")
 
                 testAcc = []
                 trainAcc = []
@@ -90,7 +106,7 @@ if __name__ == "__main__":
 
                         currentBatch, batch_train_images, batch_train_labels = dataset.getBatch()
                         
-                        _, l, summary = sess.run([train_step, loss, merged_summary_op], feed_dict={img_placeholder:batch_train_images, y_true: batch_train_labels})
+                        _, l, summary = sess.run([train_step, loss, loss_summary], feed_dict={img_placeholder:batch_train_images, y_true: batch_train_labels})
                         writer.add_summary(summary, i)
 
                         losses.append(l)
@@ -102,16 +118,13 @@ if __name__ == "__main__":
                                 nbBatchsInEpoch = dataset.buildBatches(batch_size)
                                 currentEpoch+=1
 
-                                test_correct_prediction = tf.equal(tf.argmax(y_pred, 1), tf.argmax(batch_test_labels, 1))
-                                test_accuracy = tf.reduce_mean(tf.cast(test_correct_prediction, tf.float32))
-                                test_acc = sess.run(test_accuracy, feed_dict={img_placeholder: batch_test_images, y_true: batch_test_labels})
+                                test_acc, summary = sess.run([accuracy, accuracy_summary], feed_dict={img_placeholder: batch_test_images, y_true: batch_test_labels})
+                                writer1.add_summary(summary, currentEpoch)
                                 testAcc.append(test_acc)
                                 print("test accuracy : "+str(round(test_acc, 4))+" smoothed test accuracy : "+str(round(np.mean(testAcc[-10:]), 4)))
                                 
-
-                                train_correct_prediction = tf.equal(tf.argmax(y_pred, 1), tf.argmax(batch_train_labels, 1))
-                                train_accuracy = tf.reduce_mean(tf.cast(train_correct_prediction, tf.float32))
-                                train_acc = sess.run(train_accuracy, feed_dict={img_placeholder: batch_train_images, y_true: batch_train_labels})
+                                train_acc, summary = sess.run([accuracy, accuracy_summary], feed_dict={img_placeholder: batch_train_images, y_true: batch_train_labels})
+                                writer2.add_summary(summary, currentEpoch)
                                 trainAcc.append(train_acc)
                                 print("train accuracy : "+str(round(train_acc, 4))+" smoothed train accuracy : "+str(round(np.mean(trainAcc[-10:]), 4)))
 
@@ -155,6 +168,8 @@ if __name__ == "__main__":
                                 epoch_folder = str(model_folder)+"/epoch_"+str(currentEpoch)
                                 saver.save(sess, epoch_folder+"/model.ckpt")
                                 os.system("touch "+epoch_folder+"/infos")
+                                os.system("unlink "+str(model_folder)+"/lastEpoch")
+                                os.system("ln -sf epoch_"+str(currentEpoch)+" "+str(model_folder)+"/lastEpoch")
 
                                 utils.visualize_false_predictions(epoch_folder,
                                                                   batch_test_images,

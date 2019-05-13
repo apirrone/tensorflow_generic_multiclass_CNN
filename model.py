@@ -24,16 +24,21 @@ def tiny_model(input, nbClasses):
                         net = tf.contrib.layers.conv2d(input, conv_features[0], [kernels[0], kernels[0]],
                                                        activation_fn=tf.nn.relu, padding='SAME',
                                                        weights_initializer=tf.contrib.layers.xavier_initializer_conv2d(),
+                                                       # weights_initializer = tf.contrib.layers.variance_scaling_initializer(),
                                                        scope=scope)
                         net = tf.contrib.layers.max_pool2d(net, [poolings[0], poolings[0]], padding='VALID')
+                        # net = tf.contrib.layers.dropout(net, keep_prob=0.5)
                         manual_nb_neurons["conv1"] = input_channels * conv_features[0] * kernels[0] ** 2
                         
                 with tf.variable_scope("conv2") as scope:
                         net = tf.contrib.layers.conv2d(net, conv_features[1], [kernels[1], kernels[1]],
                                                        activation_fn=tf.nn.relu, padding='SAME',
                                                        weights_initializer=tf.contrib.layers.xavier_initializer_conv2d(),
+                                                       # weights_initializer = tf.contrib.layers.variance_scaling_initializer(),
                                                        scope=scope)
+                        
                         net = tf.contrib.layers.max_pool2d(net, [poolings[1], poolings[1]], padding='VALID')
+                        # net = tf.contrib.layers.dropout(net, keep_prob=0.5)
                         manual_nb_neurons["conv2"] = conv_features[0] * conv_features[1] * kernels[1] ** 2
                         
                 # for opencv3.2
@@ -46,6 +51,7 @@ def tiny_model(input, nbClasses):
                 with tf.variable_scope("fc1") as scope:
                         net = tf.contrib.layers.fully_connected(net, fc_layer_output, activation_fn=tf.nn.relu,
                                                                 weights_initializer=tf.contrib.layers.xavier_initializer(),
+                                                                # weights_initializer = tf.contrib.layers.variance_scaling_initializer(),
                                                                 scope=scope)
                         layer_input_dim = conv_features[1] * (input_size / poolings[0] / poolings[1]) ** 2
                         manual_nb_neurons["fc1"] = layer_input_dim * fc_layer_output
@@ -53,6 +59,7 @@ def tiny_model(input, nbClasses):
                 with tf.variable_scope("output") as scope:
                         net = tf.contrib.layers.fully_connected(net, nbClasses, activation_fn=tf.nn.softmax,
                                                                 weights_initializer=tf.contrib.layers.xavier_initializer(),
+                                                                # weights_initializer = tf.contrib.layers.variance_scaling_initializer(),
                                                                 scope=scope)
                         manual_nb_neurons["fc2"] = fc_layer_output * nbClasses
 
