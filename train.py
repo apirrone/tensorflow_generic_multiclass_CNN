@@ -5,24 +5,46 @@ import os
 from dataset import *
 from model import *
 import cv2
+import utils
+import datetime
+
+now = datetime.datetime.now()
 
 os.environ["CUDA_VISIBLE_DEVICES"]='1'
 
-batch_size = 32
+batch_size = 64
 nb_epochs = 100
-image_size = [256, 256]
-model_folder = "model/"
-learning_rate = 0.01
-data_path = "path_to_your_data"
+image_size = [128, 128]
+learning_rate = 0.001
 train_proportion = 0.8
 classes = ["class1", "class2", "class3"] # any number of classes
 model = tiny_model
 gray_scale = False
 
+model_folder = "model_"+now.strftime("%Y-%m-%d_%H:%M")+"/"
+os.system("mkdir "+str(model_folder))
+os.system("ln -sf "+str(model_folder)+" lastModel")
+logs_dir = str(model_folder)+"/logs/"
+data_path = "data/"
+
+
 if __name__ == "__main__":
-        
+
         dataset = Dataset(data_path, image_size, train_proportion, classes, gray_scale)        
         nbBatchsInEpoch = dataset.buildBatches(batch_size)
+
+        modelInfos = open(model_folder+"/infos", "a")                                
+        modelInfos.write("Model name : tiny_model_1layer2fc\n")
+        modelInfos.write("Batch size : "+str(batch_size)+"\n")
+        modelInfos.write("Image size : "+str(image_size)+"\n")
+        modelInfos.write("Learning rate : "+str(learning_rate)+"\n\n")
+        modelInfos.write("Data used : "+str(data_path)+"\n\n")
+        
+        modelInfos.write(str(len(classes))+" Classes : "+str(classes)+"\n\n")
+        for key, value in dataset.pathsByLabel.items():
+                modelInfos.write("Number of "+key+" : "+str(len(value))+"\n")
+        modelInfos.close()
+        
 
         placeholder_shape = [None] + list(dataset.imShape)
         print("placeholder_shape", placeholder_shape)
@@ -36,6 +58,11 @@ if __name__ == "__main__":
         sigmoid_cross_entropy_with_logits = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=y_true, logits=y_pred))
         
         loss = cross_entropy
+
+        # Create a summary to monitor cost tensor
+        tf.summary.scalar("loss", loss)
+        # Merge all summaries into a single op
+        merged_summary_op = tf.summary.merge_all()
         
         # Optimizers
         # train_step = tf.train.MomentumOptimizer(learningRate, 0.99, use_nesterov=False).minimize(loss)
@@ -48,6 +75,9 @@ if __name__ == "__main__":
         saver = tf.train.Saver()
         with tf.Session() as sess:
                 sess.run(tf.global_variables_initializer())
+                
+                # tensorboard stuff
+                writer = tf.summary.FileWriter(logs_dir, sess.graph)
 
                 testAcc = []
                 trainAcc = []
@@ -60,7 +90,8 @@ if __name__ == "__main__":
 
                         currentBatch, batch_train_images, batch_train_labels = dataset.getBatch()
                         
-                        _, l = sess.run([train_step, loss], feed_dict={img_placeholder:batch_train_images, y_true: batch_train_labels})
+                        _, l, summary = sess.run([train_step, loss, merged_summary_op], feed_dict={img_placeholder:batch_train_images, y_true: batch_train_labels})
+                        writer.add_summary(summary, i)
 
                         losses.append(l)
 
@@ -71,55 +102,29 @@ if __name__ == "__main__":
                                 nbBatchsInEpoch = dataset.buildBatches(batch_size)
                                 currentEpoch+=1
 
-                                correct_prediction = tf.equal(tf.argmax(y_pred, 1), tf.argmax(batch_test_labels, 1))
-                                accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-                                tmp_acc = sess.run(accuracy, feed_dict={img_placeholder: batch_test_images, y_true: batch_test_labels})
+                                test_correct_prediction = tf.equal(tf.argmax(y_pred, 1), tf.argmax(batch_test_labels, 1))
+                                test_accuracy = tf.reduce_mean(tf.cast(test_correct_prediction, tf.float32))
+                                test_acc = sess.run(test_accuracy, feed_dict={img_placeholder: batch_test_images, y_true: batch_test_labels})
+                                testAcc.append(test_acc)
+                                print("test accuracy : "+str(round(test_acc, 4))+" smoothed test accuracy : "+str(round(np.mean(testAcc[-10:]), 4)))
                                 
-                                testAcc.append(tmp_acc)
-                                print("test accuracy : "+str(round(tmp_acc, 4))+" smoothed test accuracy : "+str(round(np.mean(testAcc[-10:]), 4)))
-                                
-                                correct_prediction = tf.equal(tf.argmax(y_pred, 1), tf.argmax(batch_train_labels, 1))
-                                accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-                                tmp_acc = sess.run(accuracy, feed_dict={img_placeholder: batch_train_images, y_true: batch_train_labels})
-                                
-                                trainAcc.append(tmp_acc)
-                                print("train accuracy : "+str(round(tmp_acc, 4))+" smoothed train accuracy : "+str(round(np.mean(trainAcc[-10:]), 4)))
 
-                                sample = sess.run(y_pred, feed_dict={img_placeholder: batch_test_images})
+                                train_correct_prediction = tf.equal(tf.argmax(y_pred, 1), tf.argmax(batch_train_labels, 1))
+                                train_accuracy = tf.reduce_mean(tf.cast(train_correct_prediction, tf.float32))
+                                train_acc = sess.run(train_accuracy, feed_dict={img_placeholder: batch_train_images, y_true: batch_train_labels})
+                                trainAcc.append(train_acc)
+                                print("train accuracy : "+str(round(train_acc, 4))+" smoothed train accuracy : "+str(round(np.mean(trainAcc[-10:]), 4)))
+
                                 
+                                
+                                sample = sess.run(y_pred, feed_dict={img_placeholder: batch_test_images})
                                 print("=============================================")
                                 print("sample :")
 
                                 print(sample[0])
                                 print(batch_test_labels[0])
-                                
                                 print("=============================================")
-                                imageIndex = 0
-                                os.system("rm -rf visualization_"+model_folder+"/")
-                                os.system("mkdir visualization_"+model_folder+"/")
-                                for b in range(0, len(sample)):
-                                        # visual evaluation
-                                        tmpIm = batch_test_images[b]
-                                        true = batch_test_labels[b]
-                                        pred = sample[b]
-                                        if (np.argmax(true) != np.argmax(pred)):
-                                                blank_image = np.zeros((dataset.image_size[1]*2, dataset.image_size[0]*2, 3))
-                                                blank_image[:, :, 0] = 255
-                                                blank_image[:, :, 1] = 255
-                                                blank_image[:, :, 2] = 255
-                                                blank_image[0:dataset.image_size[1], 0:dataset.image_size[0], :] = (tmpIm*255).astype(np.uint8)
-
-                                                str_true = "true : "+dataset.inverted_labels_map[np.argmax(true)]
-                                                str_pred = "pred : "+dataset.inverted_labels_map[np.argmax(pred)]
-                                        
-                                                cv2.putText(blank_image, str_true, (0, dataset.image_size[0]+30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2, cv2.LINE_AA)
-                                                cv2.putText(blank_image, str_pred, (0, dataset.image_size[0]+50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2, cv2.LINE_AA)
-                                                cv2.imwrite("visualization_"+model_folder+"/false_prediction_"+str(imageIndex)+".png", blank_image.astype(np.uint8))
-                                                
-                                                imageIndex +=1
                                 
-                                
-                                print("=============================================")
                                 print("")
                                 print("Confusion Matrix (cols : prediction, rows : label)")
                                 con_mat = tf.confusion_matrix(tf.argmax(batch_test_labels, 1), tf.argmax(sample, 1))
@@ -145,40 +150,40 @@ if __name__ == "__main__":
                                 print(confusion_matrix)
                                 print("=============================================")
 
+                                
                                 print("========= Saving...=========")
-                                saver.save(sess, model_folder+"/model.ckpt")
-                                os.system("rm "+model_folder+"/infos")
-                                os.system("touch "+model_folder+"/infos")
-                                aze = open(model_folder+"/infos", "a")
-                                aze.write("Model name : tiny_model_1layer2fc\n")
-                                aze.write("Batch size : "+str(batch_size)+"\n")
-                                aze.write("Image size : "+str(image_size)+"\n")
-                                aze.write("Epoch : "+str(currentEpoch)+"/"+str(nb_epochs)+"\n")
-                                aze.write("Learning rate : "+str(learning_rate)+"\n\n")
-                                aze.write("Data used : "+str(data_path)+"\n\n")
+                                epoch_folder = str(model_folder)+"/epoch_"+str(currentEpoch)
+                                saver.save(sess, epoch_folder+"/model.ckpt")
+                                os.system("touch "+epoch_folder+"/infos")
+
+                                utils.visualize_false_predictions(epoch_folder,
+                                                                  batch_test_images,
+                                                                  batch_test_labels,
+                                                                  sample,
+                                                                  dataset.image_size,
+                                                                  dataset.inverted_labels_map)
                                 
+                                epochInfos = open(epoch_folder+"/infos", "a")
+                                epochInfos.write("Epoch : "+str(currentEpoch)+"/"+str(nb_epochs)+"\n")
+
+
+                                epochInfos.write("training Loss : "+str(round(np.mean(losses[-1000:]), 4))+"\n")
+                                epochInfos.write("train accuracy : "+str(round(trainAcc[len(trainAcc)-1], 4))+"\n")
+                                epochInfos.write("test accuracy : "+str(round(testAcc[len(testAcc)-1], 4))+"\n\n")
                                 
-                                aze.write(str(len(classes))+" Classes : "+str(classes)+"\n\n")
-                                for key, value in dataset.pathsByLabel.items():
-                                        aze.write("Number of "+key+" : "+str(len(value))+"\n")
-                                aze.write("\n")
-                                aze.write("training Loss : "+str(round(np.mean(losses[-1000:]), 4))+"\n")
-                                aze.write("train accuracy : "+str(round(trainAcc[len(trainAcc)-1], 4))+"\n")
-                                aze.write("test accuracy : "+str(round(testAcc[len(testAcc)-1], 4))+"\n\n")
-                                
-                                aze.write("Confusion matrix : \n")
+                                epochInfos.write("Confusion matrix : \n")
                                 for j in range(0, len(dataset.inverted_labels_map)):
-                                        aze.write(str(dataset.inverted_labels_map[j])+" ")
-                                aze.write("\n")
-                                aze.write(str(normal_confusion_matrix)+"\n\n")
+                                        epochInfos.write(str(dataset.inverted_labels_map[j])+" ")
+                                epochInfos.write("\n")
+                                epochInfos.write(str(normal_confusion_matrix)+"\n\n")
                                 
-                                aze.write("Normalized confusion matrix : \n")
+                                epochInfos.write("Normalized confusion matrix : \n")
                                 for j in range(0, len(dataset.inverted_labels_map)):
-                                        aze.write(str(dataset.inverted_labels_map[j])+" ")
-                                aze.write("\n")
-                                aze.write(str(confusion_matrix)+"\n\n")
+                                        epochInfos.write(str(dataset.inverted_labels_map[j])+" ")
+                                epochInfos.write("\n")
+                                epochInfos.write(str(confusion_matrix)+"\n\n")
                                                                 
-                                aze.close()
+                                epochInfos.close()
 
                                 # exporting .pb file
                                 print("========= Exporting .pb and .pbtxt...=========")
@@ -190,9 +195,9 @@ if __name__ == "__main__":
                                         input_graph_def,
                                         ["tiny_model/output/output/Softmax"])  # WARNING change this if you change the model
                                 
-                                with tf.gfile.GFile(str(model_folder)+"/model.pb", "wb") as f:
+                                with tf.gfile.GFile(str(epoch_folder)+"/model.pb", "wb") as f:
                                         f.write(output_graph_def.SerializeToString())
-                                        tf.train.write_graph(sess.graph_def, '.', str(model_folder)+'/model.pbtxt')
+                                        tf.train.write_graph(sess.graph_def, '.', str(epoch_folder)+'/model.pbtxt')
                                 
                                         
                                 

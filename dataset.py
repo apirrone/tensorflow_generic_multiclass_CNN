@@ -31,7 +31,6 @@ class Dataset():
                 return labelVector                        
                 
         def getBatch(self):
-
                 images = []
                 labels = []
 
@@ -40,7 +39,7 @@ class Dataset():
                         labelVector = self.getLabelVector(self.labels_map[entry["label"]])
                         labels.append(labelVector)
 
-                self.currentBatch +=1 
+                self.currentBatch +=1
                 return self.currentBatch, images, labels
         
         
@@ -66,7 +65,7 @@ class Dataset():
                         
                 currentBatchIdx = 0
                 for i in range(0, len(self.trainingSet)):
-
+                        
                         self.batches[currentBatchIdx].append(self.trainingSet[i])
                         
                         if i!=0 and i%batchSize == batchSize-1:
@@ -95,14 +94,28 @@ class Dataset():
                         
                         for file in os.listdir(currentDataPath):
                                 if(os.path.isfile(currentDataPath+file)):
-                                        if file.endswith('.JPG'):
+                                        if file.endswith('.png'):
                                                 self.pathsByLabel[key].append(currentDataPath+file)
                                                 totalNumberOfImages += 1
 
                         random.shuffle(self.pathsByLabel[key])
-                                                
+
+                minNb = None
+                minNbLabel = ""                                                
                 for key, value in self.pathsByLabel.items():
-                        print("Number of "+key+" : "+str(len(value)))
+                        # print("Number of "+key+" : "+str(len(value)))
+                        if minNb == None or len(value) < minNb:
+                                minNb = len(value)
+                                minNbLabel = key
+
+
+                for key, value in self.pathsByLabel.items():
+                        if key != minNbLabel:
+                                self.pathsByLabel[key] = self.pathsByLabel[key][:-(len(self.pathsByLabel[key])-minNb)]
+
+                for key, value in self.pathsByLabel.items():
+                        print("Number of "+key+" : "+str(len(value)))                
+
                         
                 ii = 0
                 print("== Loading Images ...  ==")
@@ -160,7 +173,7 @@ class Dataset():
 
                 self.batches = []
                 print("Size of training set :" + str(len(self.trainingSet)))
-                print("Size of validation set :" + str(len(self.validationSet)*2))
+                print("Size of validation set :" + str(len(self.validationSet)))
 
                 
 if __name__ == "__main__":
@@ -168,10 +181,12 @@ if __name__ == "__main__":
         classes = ["class1", "class2", "class3"] # any number of classes
         dataPath = "path_to_your_data/"
         train_proportion = 0.8
-        batch_size = 64
+        batch_size = 256
         gray_scale = False
+
+        image_size = [128, 128]
         
-        dataset = Dataset(dataPath, [height, width], train_proportion, classes, gray_scale)        
+        dataset = Dataset(dataPath, image_size, train_proportion, classes, gray_scale)        
 
         nbBatches = dataset.buildBatches(batch_size)
 

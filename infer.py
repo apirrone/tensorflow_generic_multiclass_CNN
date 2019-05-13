@@ -18,7 +18,7 @@ args = argParser.parse_args()
 images = []
 
 for file in sorted(os.listdir(args.inputDir)):
-        if file.endswith(".JPG"):
+        if file.endswith(".png"):
             im = cv2.imread(args.inputDir+"/"+file)
             images.append([im, file])
 

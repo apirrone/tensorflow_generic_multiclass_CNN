@@ -1,5 +1,8 @@
 import sys
 import random
+import os
+import cv2
+import numpy as np
 
 # Shamelessly taken from https://stackoverflow.com/questions/3041986/apt-command-line-interface-like-yes-no-input
 def query_yes_no(question, default="yes"):
@@ -47,3 +50,36 @@ def shuffleDict(d):
                         ret[k].append(v)
                 
         return ret
+
+
+def visualize_false_predictions(model_folder, batch_test_images, batch_test_labels, sample, image_size, inverted_labels_map):
+    imageIndex = 0
+    os.system("mkdir "+str(model_folder)+"/visualization/")
+    for b in range(0, len(sample)):
+        # visual evaluation
+        tmpIm = batch_test_images[b]
+        true = batch_test_labels[b]
+        pred = sample[b]
+        if (np.argmax(true) != np.argmax(pred)):
+            blank_image = np.zeros((image_size[1]*2, image_size[0]*2, 3))
+            blank_image[:, :, 0] = 255
+            blank_image[:, :, 1] = 255
+            blank_image[:, :, 2] = 255
+            blank_image[0:image_size[1], 0:image_size[0], :] = (tmpIm*255).astype(np.uint8)
+            
+            str_true = "true : "+inverted_labels_map[np.argmax(true)]
+            str_pred = "pred : "+inverted_labels_map[np.argmax(pred)]
+            
+            cv2.putText(blank_image, str_true, (0, image_size[0]+30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2, cv2.LINE_AA)
+            cv2.putText(blank_image, str_pred, (0, image_size[0]+50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2, cv2.LINE_AA)
+            cv2.imwrite(str(model_folder)+"/visualization/false_prediction_"+str(imageIndex)+".png", blank_image.astype(np.uint8))
+            
+            imageIndex +=1
+
+
+
+def cleanModels():
+    os.system("rm -rf model_*")
+    os.system("unlink lastModel")
+    
+    
