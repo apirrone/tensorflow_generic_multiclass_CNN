@@ -2,3 +2,4 @@ __pycache__/*
 lastModel
 model_*/*
 data
+sarcophage/*
