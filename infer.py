@@ -4,6 +4,17 @@ import os
 import cv2
 import argparse
 import numpy as np
+import backtrace
+
+backtrace.hook(
+    reverse=False,
+    align=True,
+    strip_path=True,
+    enable_on_envvar_only=False,
+    on_tty=False,
+    conservative=False,
+    styles={})
+
 
 def typeDir(str):
     if(not os.path.isdir(str)):
@@ -19,7 +30,9 @@ argParser.add_argument('--imWidth', type=int, required=False, help="images width
 argParser.add_argument('--imHeight', type=int, required=False, help="images height", default=128)
 args = argParser.parse_args()
 
-classes = ["class1", "class2", "class3"] # any number of classes
+# classes = ["class1", "class2", "class3"] # any number of classes
+classes = ["demotic", "greek", "coptic"] # any number of classes
+# classes = ["arabic", "greek", "coptic"] # any number of classes
 classes = sorted(classes)
 
 images = []
@@ -32,7 +45,7 @@ for file in sorted(os.listdir(args.inputDir)):
             images.append([im, file])
 
 
-os.environ["CUDA_VISIBLE_DEVICES"]='1'
+os.environ["CUDA_VISIBLE_DEVICES"]='2'
 
 
 placeholder_shape = [None] + list(images[0][0].shape)

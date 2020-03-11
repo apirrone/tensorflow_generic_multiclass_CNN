@@ -7,17 +7,22 @@ from model import *
 import cv2
 import utils
 import datetime
+import argparse
 
 now = datetime.datetime.now()
+argParser = argparse.ArgumentParser(description='Inference')
+argParser.add_argument('-g', '--gpuNb', type=int, required=True, help="gpu for training")
+args = argParser.parse_args()
 
-os.environ["CUDA_VISIBLE_DEVICES"]='1'
+os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpuNb)
 
-batch_size = 64
-nb_epochs = 40
+batch_size = 128
+nb_epochs = 300
 image_size = [128, 128]
-learning_rate = 0.001
+learning_rate = 0.0001
 train_proportion = 0.8
-classes = ["class1", "class2", "class3"] # any number of classes
+classes = ["arabic", "greek", "coptic"] # any number of classes
+# classes = ["class1", "class2", "class3"] # any number of classes
 model = tiny_model
 gray_scale = False
 
@@ -26,12 +31,13 @@ os.system("mkdir "+str(model_folder))
 os.system("unlink lastModel")
 os.system("ln -sf "+str(model_folder)+" lastModel")
 logs_dir = str(model_folder)+"/logs/"
-data_path = "data/"
 
+data_path = "data/allPatches_128/"
 
 if __name__ == "__main__":
 
-        dataset = Dataset(data_path, image_size, train_proportion, classes, gray_scale)        
+        dataset = Dataset(data_path, image_size, train_proportion, classes, gray_scale)
+
         nbBatchsInEpoch = dataset.buildBatches(batch_size)
 
         modelInfos = open(model_folder+"/infos", "a")
@@ -41,7 +47,7 @@ if __name__ == "__main__":
         
         modelInfos.write("Comment : "+str(comment)+"\n\n")
         
-        modelInfos.write("Model name : tiny_model\n")
+        modelInfos.write("Model name : "+str(model.__name__)+"\n")
         modelInfos.write("Batch size : "+str(batch_size)+"\n")
         modelInfos.write("Image size : "+str(image_size)+"\n")
         modelInfos.write("Learning rate : "+str(learning_rate)+"\n\n")
@@ -70,13 +76,6 @@ if __name__ == "__main__":
         correct_prediction = tf.equal(tf.argmax(y_pred, 1), tf.argmax(y_true, 1))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
         accuracy_summary = tf.summary.scalar("accuracies", accuracy)
-
-        # train_correct_prediction = tf.equal(tf.argmax(y_pred, 1), tf.argmax(y_true, 1))
-        # train_accuracy = tf.reduce_mean(tf.cast(train_correct_prediction, tf.float32))
-        # train_accuracy_summary = tf.summary.scalar("train_accuracy", train_accuracy)
-        
-        # # Merge all summaries into a single op
-        # merged_summary_op = tf.summary.merge_all()
         
         # Optimizers
         # train_step = tf.train.MomentumOptimizer(learningRate, 0.99, use_nesterov=False).minimize(loss)
@@ -126,11 +125,10 @@ if __name__ == "__main__":
                                 train_acc, summary = sess.run([accuracy, accuracy_summary], feed_dict={img_placeholder: batch_train_images, y_true: batch_train_labels})
                                 writer2.add_summary(summary, currentEpoch)
                                 trainAcc.append(train_acc)
-                                print("train accuracy : "+str(round(train_acc, 4))+" smoothed train accuracy : "+str(round(np.mean(trainAcc[-10:]), 4)))
-
-                                
+                                print("train accuracy : "+str(round(train_acc, 4))+" smoothed train accuracy : "+str(round(np.mean(trainAcc[-10:]), 4)))                                
                                 
                                 sample = sess.run(y_pred, feed_dict={img_placeholder: batch_test_images})
+                                
                                 print("=============================================")
                                 print("sample :")
 
